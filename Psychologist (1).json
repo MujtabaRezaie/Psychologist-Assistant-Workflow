@@ -1,0 +1,209 @@
+{
+  "name": "Psychologist",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        -112
+      ],
+      "id": "e39c693d-25c0-4042-9030-61d61e382bab",
+      "name": "Telegram Trigger",
+      "webhookId": "a955ac68-822c-4f18-9ac9-50441e6b25c7",
+      "credentials": {
+        "telegramApi": {
+          "id": "6XoofJlGOfJb4CwY",
+          "name": "psychologist"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a practical mental health assistant designed for Afghan users.\n\nYour task:\nProvide clear, direct, and actionable solutions to the user's problem.\n\nSTRICT RULES:\n- Do NOT show empathy, sympathy, or emotional language.\n- Do NOT say phrases like \"I understand\", \"I'm sorry\", etc.\n- Do NOT add unnecessary explanations.\n- Focus ONLY on practical steps and solutions.\n- Keep answers concise and structured.\n- Use simple language suitable for general Afghan users.\n- If possible, give step-by-step instructions.\n- Prefer culturally appropriate and realistic advice.\n\nSAFETY RULES:\n- If the user shows signs of self-harm, suicide, or serious mental crisis:\n  - Give immediate practical steps for safety (e.g., contact trusted person, go to safe place).\n  - Suggest reaching out to local support resources or hotlines if available.\n  - Still avoid emotional language.\n\nOUTPUT FORMAT:\n- Use bullet points or numbered steps.\n- Maximum 6 steps.\n- No introduction, no conclusion.\n\nLANGUAGE:\n- Answer in Persian (Dari).\n\n- Do NOT use markdown, bold, italic, or special formatting characters.\n- Use plain text only.\n---\n\nUser message:\n{{ $json.message.text }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -64,
+        64
+      ],
+      "id": "34445d12-2e9f-497b-9234-1c300fabbd13",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        256
+      ],
+      "id": "2e867235-70f0-4ff0-b446-57fa5a861cc1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "fHgnZyjGAjzV7VIV",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        64
+      ],
+      "id": "06cb095e-09b0-440f-ae70-644f3b053d26",
+      "name": "Send a text message",
+      "webhookId": "95caf245-7d5e-4db7-8e84-25182eb3ce6e",
+      "credentials": {
+        "telegramApi": {
+          "id": "6XoofJlGOfJb4CwY",
+          "name": "psychologist"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b9bbc5b1-862d-4c3a-8c62-431a349a99fe",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        -112
+      ],
+      "id": "f27996ac-65bc-473b-8fa6-69b807ecbd39",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "سلام\nبه ربات تلگرام روانشناس خوش آمدید.\nلطفا مشکل تان را برای ما بنویسید تا بهترین راه حل ممکن را برایتان ارائه دهیم.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        -128
+      ],
+      "id": "d50c540f-c2eb-45b5-8e9e-84a250e17750",
+      "name": "Send a text message1",
+      "webhookId": "c6dc4626-bb71-46b0-97c1-852db766b4df",
+      "credentials": {
+        "telegramApi": {
+          "id": "6XoofJlGOfJb4CwY",
+          "name": "psychologist"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f92cc654-2cd3-452f-90fa-7e1d9bed0d31",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bcdb15ef08ea53913b97983d05b8999b3799e508761b41e5475154b7f7280645"
+  },
+  "id": "AnOGi0eLEazGiy1D",
+  "tags": []
+}
